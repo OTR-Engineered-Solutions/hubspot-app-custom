@@ -15,7 +15,8 @@
         "crm.objects.companies.write",
         "crm.objects.tickets.read",
         "crm.objects.tickets.write",
-        "crm.schemas.tickets.read"
+        "crm.schemas.tickets.read",
+        "e-commerce"
       ],
       "optionalScopes": [],
       "conditionallyRequiredScopes": []

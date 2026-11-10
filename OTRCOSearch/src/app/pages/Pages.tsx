@@ -5,7 +5,8 @@ import {
   PageRoutes,
   PageRoutesLayoutProps,
 } from '@hubspot/ui-extensions/pages';
-import { HomePage, AppContext } from './HomePage.tsx';
+import { AppContext } from './HomePage.tsx';
+import { OrderEntryPage } from './OrderEntryPage.tsx';
 
 interface PagesExtensionProps {
   context: PagesContext;
@@ -18,7 +19,7 @@ const PageLayout = ({ children }: PageRoutesLayoutProps) => {
 
 const PageRouter = createPageRouter(
   <PageRoutes layoutComponent={PageLayout}>
-    <PageRoutes.IndexRoute component={HomePage} />
+    <PageRoutes.IndexRoute component={OrderEntryPage} />
   </PageRoutes>,
 );
 
