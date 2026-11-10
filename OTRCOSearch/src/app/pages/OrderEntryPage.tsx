@@ -142,6 +142,86 @@ const Row = ({ children }: { children: any[] }) => (
   </Flex>
 );
 
+// Company type-ahead (name, domain, or OTR Customer Code), same search as the
+// original "Find company" field. Shows the picked value read-only once chosen.
+const CompanySearchField = ({
+  name,
+  label,
+  placeholder,
+  description,
+  required,
+  selectedValue,
+  onPick,
+}: {
+  name: string;
+  label: string;
+  placeholder: string;
+  description?: string;
+  required?: boolean;
+  selectedValue: string | null;
+  onPick: (c: any) => void;
+}) => {
+  const [term, setTerm] = useState('');
+  const search = useTypeAhead('search', selectedValue === null ? term : '');
+
+  if (selectedValue !== null) {
+    return <Input name={name} label={label} required={required} readOnly description={description} value={selectedValue} />;
+  }
+
+  return (
+    <Flex direction="column" gap="xs">
+      <SearchInput
+        name={name}
+        label={label}
+        required={required}
+        description={description}
+        placeholder={placeholder}
+        value={term}
+        onInput={(v: string) => setTerm(v)}
+        onChange={(v: string) => setTerm(v)}
+      />
+      {search.loading && <LoadingSpinner size="xs" label="Searching" />}
+      {search.error && <Text variant="microcopy">Search failed: {search.error}</Text>}
+      {!search.loading && !search.error && term.trim().length >= 2 && search.results.length === 0 && (
+        <Text variant="microcopy">No companies match. Try fewer letters or the customer code.</Text>
+      )}
+      {search.results.length > 0 && (
+        <Table bordered={true}>
+          <TableHead>
+            <TableRow>
+              <TableHeader>Company</TableHeader>
+              <TableHeader>OTR Customer Code</TableHeader>
+              <TableHeader>Domain</TableHeader>
+              <TableHeader> </TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {search.results.map((c: any) => (
+              <TableRow key={c.id}>
+                <TableCell>{c.name || '(no name)'}</TableCell>
+                <TableCell>{c.code || '—'}</TableCell>
+                <TableCell>{c.domain || '—'}</TableCell>
+                <TableCell>
+                  <Button
+                    size="xs"
+                    onClick={() => {
+                      setTerm('');
+                      search.clear();
+                      onPick(c);
+                    }}
+                  >
+                    Select
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </Flex>
+  );
+};
+
 export const OrderEntryPage = () => {
   const app = useContext(AppContext);
   const portalId = app?.context?.portal?.id;
@@ -150,9 +230,7 @@ export const OrderEntryPage = () => {
   const [submitting, setSubmitting] = useState(false);
 
   // Customer
-  const [companyTerm, setCompanyTerm] = useState('');
   const [company, setCompany] = useState<any>(null);
-  const companySearch = useTypeAhead('search', company ? '' : companyTerm);
 
   // Order fields
   const [email, setEmail] = useState('');
@@ -197,15 +275,8 @@ export const OrderEntryPage = () => {
   const marginAmt = orderTotal - totalCost;
   const marginPct = orderTotal ? (marginAmt / orderTotal) * 100 : 0;
 
-  const pickCompany = (c: any) => {
-    setCompany(c);
-    setCompanyTerm('');
-    companySearch.clear();
-  };
-
   const resetForm = () => {
     setCompany(null);
-    setCompanyTerm('');
     setEmail('');
     setPoNumber('');
     setBranch('');
@@ -307,56 +378,30 @@ export const OrderEntryPage = () => {
 
         {/* Customer ID/Name + Customer Number */}
         <Row>
-          {company ? (
-            <Flex direction="column" gap="xs">
-              <Input name="customer" label="Customer ID/Name" required readOnly value={company.name || ''} />
-              <Button variant="secondary" size="xs" onClick={() => setCompany(null)}>
-                Change customer
-              </Button>
-            </Flex>
-          ) : (
-            <Flex direction="column" gap="xs">
-              <SearchInput
-                name="customerSearch"
-                label="Customer ID/Name"
-                required
-                placeholder="Type a company name or customer code"
-                value={companyTerm}
-                onInput={(v: string) => setCompanyTerm(v)}
-                onChange={(v: string) => setCompanyTerm(v)}
-              />
-              {companySearch.loading && <LoadingSpinner size="xs" label="Searching" />}
-              {companySearch.error && <Text variant="microcopy">Search failed: {companySearch.error}</Text>}
-              {!companySearch.loading && companyTerm.trim().length >= 2 && companySearch.results.length === 0 && !companySearch.error && (
-                <Text variant="microcopy">No matching companies.</Text>
-              )}
-              {companySearch.results.length > 0 && (
-                <Table bordered={true}>
-                  <TableBody>
-                    {companySearch.results.map((c: any) => (
-                      <TableRow key={c.id}>
-                        <TableCell>{c.name || '(no name)'}</TableCell>
-                        <TableCell>{c.code || '—'}</TableCell>
-                        <TableCell>
-                          <Button size="xs" onClick={() => pickCompany(c)}>
-                            Select
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </Flex>
-          )}
-          <Input
+          <CompanySearchField
+            name="customer"
+            label="Customer ID/Name"
+            required
+            placeholder="Search by company name, website, or OTR Customer Code"
+            selectedValue={company ? company.name || '' : null}
+            onPick={setCompany}
+          />
+          <CompanySearchField
             name="customerNumber"
             label="Customer Number"
-            readOnly
-            description="Filled from the company's OTR Customer Code"
-            value={company?.code || ''}
+            description="OTR Customer Code. Search here, or it fills in when you pick a customer."
+            placeholder="Search by OTR Customer Code"
+            selectedValue={company ? company.code || '' : null}
+            onPick={setCompany}
           />
         </Row>
+        {company && (
+          <Box>
+            <Button variant="secondary" size="xs" onClick={() => setCompany(null)}>
+              Change customer
+            </Button>
+          </Box>
+        )}
 
         <Row>
           <Input name="email" label="Customer Email" required value={email} onChange={(v: string) => setEmail(v)} />

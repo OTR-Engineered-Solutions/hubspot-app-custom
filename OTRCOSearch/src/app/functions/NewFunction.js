@@ -32,7 +32,7 @@ exports.main = async (context) => {
   }
 };
 
-// Search companies by name, domain, or OTR Customer Code
+// Search companies by name, domain, or OTR Customer Code (internal name: arcustomercode)
 async function searchCompanies(term) {
   if (!term || term.length < 2) return fail(400, 'Search term is required.');
   const wildcard = `*${term}*`;
@@ -41,9 +41,9 @@ async function searchCompanies(term) {
     filterGroups: [
       { filters: [{ propertyName: 'name', operator: 'CONTAINS_TOKEN', value: wildcard }] },
       { filters: [{ propertyName: 'domain', operator: 'CONTAINS_TOKEN', value: wildcard }] },
-      { filters: [{ propertyName: 'otr_customer_code', operator: 'CONTAINS_TOKEN', value: wildcard }] },
+      { filters: [{ propertyName: 'arcustomercode', operator: 'CONTAINS_TOKEN', value: wildcard }] },
     ],
-    properties: ['name', 'domain', 'otr_customer_code'],
+    properties: ['name', 'domain', 'arcustomercode'],
     sorts: [{ propertyName: 'name', direction: 'ASCENDING' }],
     limit: 20,
   });
@@ -52,7 +52,7 @@ async function searchCompanies(term) {
     id: r.id,
     name: r.properties.name,
     domain: r.properties.domain,
-    code: r.properties.otr_customer_code,
+    code: r.properties.arcustomercode,
   }));
   return ok({ results });
 }
