@@ -1,0 +1,8 @@
+
+
+# HubSpot config file
+hubspot.config.yml
+*hubspot.config.yml
+
+# Dependencies
+node_modules/

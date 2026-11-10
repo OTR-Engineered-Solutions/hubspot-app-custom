@@ -1,0 +1,7 @@
+{
+  "uid": "OTRCOSearch_page",
+  "type": "page",
+  "config": {
+    "entrypoint": "/app/pages/Pages.tsx"
+  }
+}
