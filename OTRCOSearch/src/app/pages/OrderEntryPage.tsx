@@ -281,9 +281,12 @@ export const OrderEntryPage = () => {
 
   // Picking a customer also fills Customer Email from the company's Email
   // property; it stays editable, and is left alone if the company has none.
+  // Ship To Address is refilled from Street Address / Street Address 2 (second
+  // line only if set); blank if the company has no address. Stays editable.
   const pickCompany = (c: any) => {
     setCompany(c);
     if (c.email) setEmail(c.email);
+    setShipTo([c.street1, c.street2].map((v) => (v || '').trim()).filter(Boolean).join('\n'));
   };
 
   const resetForm = () => {
