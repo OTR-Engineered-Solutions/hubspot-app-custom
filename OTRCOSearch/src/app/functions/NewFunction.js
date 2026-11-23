@@ -43,7 +43,7 @@ async function searchCompanies(term) {
       { filters: [{ propertyName: 'domain', operator: 'CONTAINS_TOKEN', value: wildcard }] },
       { filters: [{ propertyName: 'arcustomercode', operator: 'CONTAINS_TOKEN', value: wildcard }] },
     ],
-    properties: ['name', 'domain', 'arcustomercode', 'email'],
+    properties: ['name', 'domain', 'arcustomercode', 'email', 'address', 'address2'],
     sorts: [{ propertyName: 'name', direction: 'ASCENDING' }],
     limit: 20,
   });
@@ -54,6 +54,8 @@ async function searchCompanies(term) {
     domain: r.properties.domain,
     code: r.properties.arcustomercode,
     email: r.properties.email, // company "Email" property (commercient group)
+    street1: r.properties.address, // "Street Address"
+    street2: r.properties.address2, // "Street Address 2"
   }));
   return ok({ results });
 }
