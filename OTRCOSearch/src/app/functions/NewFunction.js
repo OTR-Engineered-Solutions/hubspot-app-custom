@@ -43,7 +43,7 @@ async function searchCompanies(term) {
       { filters: [{ propertyName: 'domain', operator: 'CONTAINS_TOKEN', value: wildcard }] },
       { filters: [{ propertyName: 'arcustomercode', operator: 'CONTAINS_TOKEN', value: wildcard }] },
     ],
-    properties: ['name', 'domain', 'arcustomercode'],
+    properties: ['name', 'domain', 'arcustomercode', 'email'],
     sorts: [{ propertyName: 'name', direction: 'ASCENDING' }],
     limit: 20,
   });
@@ -53,6 +53,7 @@ async function searchCompanies(term) {
     name: r.properties.name,
     domain: r.properties.domain,
     code: r.properties.arcustomercode,
+    email: r.properties.email, // company "Email" property (commercient group)
   }));
   return ok({ results });
 }
@@ -124,7 +125,7 @@ async function searchProducts(term) {
       { filters: [{ propertyName: 'name', operator: 'CONTAINS_TOKEN', value: wildcard }] },
       { filters: [{ propertyName: 'description', operator: 'CONTAINS_TOKEN', value: wildcard }] },
     ],
-    properties: ['name', 'hs_sku', 'description', 'price', 'hs_cost_of_goods_sold'],
+    properties: ['name', 'hs_sku', 'description', 'price', 'hs_cost_of_goods_sold', 'sp_alternate_uom'],
     sorts: [{ propertyName: 'name', direction: 'ASCENDING' }],
     limit: 20,
   });
@@ -136,6 +137,7 @@ async function searchProducts(term) {
     description: r.properties.description,
     price: r.properties.price,
     cost: r.properties.hs_cost_of_goods_sold,
+    boxQty: r.properties.sp_alternate_uom, // Box Quantity
   }));
   return ok({ results });
 }

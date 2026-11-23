@@ -39,11 +39,12 @@ const toOptions = (values: string[]) => values.map((v) => ({ label: v, value: v 
 
 const BRANCHES = toOptions([
   '18-MS', '19-GE', '20-TM', '21-SC', '26-JA', '46-KU', '58-RO', '60-RO', 'AZPX01A-AZ',
-  'CD-CD', 'CO01-DN', 'KS01-HS', 'NE01-NE', 'NE02-NE AF', 'R1-RO', 'R2-QY', 'SW-JA', 'TX01-TX',
+  'CD-CD', 'CO01-DN', 'KS01 - Heston', 'KS01-HS', 'KS02 - Heston', 'NE01-NE', 'NE02-NE AF',
+  'NEV01 - Evansville', 'R1-RO', 'R2-QY', 'SW-JA', 'TX01-TX',
 ]);
 const SALES_PEOPLE = toOptions([
   'AST', 'BHO', 'BLE', 'BSH', 'CBA', 'CBE', 'CRH', 'EHI', 'GSV',
-  'GWH', 'MAR', 'MCO', 'MSK', 'NZA', 'SSU', 'THE', 'ZPA',
+  'GWH', 'MAR', 'MCO', 'MSK', 'NZA', 'SSU', 'TJE', 'ZPA',
 ]);
 const SHIP_VIA = [
   ...toOptions([
@@ -62,6 +63,7 @@ interface Line {
   key: number;
   partNumber: string;
   description: string;
+  boxQty: string;
   qty: number;
   price: number;
   cost: number;
@@ -75,6 +77,7 @@ const blankLine = (): Line => ({
   key: nextKey++,
   partNumber: '',
   description: '',
+  boxQty: '',
   qty: 1,
   price: 0,
   cost: 0,
@@ -264,6 +267,7 @@ export const OrderEntryPage = () => {
     updateLine(activeLine, {
       partNumber: p.sku || p.name || '',
       description: p.description || p.name || '',
+      boxQty: p.boxQty ?? '',
       price: num(Number(p.price)),
       cost: num(Number(p.cost)),
     });
@@ -274,6 +278,13 @@ export const OrderEntryPage = () => {
   const totalCost = lines.reduce((s, l) => s + lineCost(l), 0);
   const marginAmt = orderTotal - totalCost;
   const marginPct = orderTotal ? (marginAmt / orderTotal) * 100 : 0;
+
+  // Picking a customer also fills Customer Email from the company's Email
+  // property; it stays editable, and is left alone if the company has none.
+  const pickCompany = (c: any) => {
+    setCompany(c);
+    if (c.email) setEmail(c.email);
+  };
 
   const resetForm = () => {
     setCompany(null);
@@ -384,7 +395,7 @@ export const OrderEntryPage = () => {
             required
             placeholder="Search by company name, website, or OTR Customer Code"
             selectedValue={company ? company.name || '' : null}
-            onPick={setCompany}
+            onPick={pickCompany}
           />
           <CompanySearchField
             name="customerNumber"
@@ -392,7 +403,7 @@ export const OrderEntryPage = () => {
             description="OTR Customer Code. Search here, or it fills in when you pick a customer."
             placeholder="Search by OTR Customer Code"
             selectedValue={company ? company.code || '' : null}
-            onPick={setCompany}
+            onPick={pickCompany}
           />
         </Row>
         {company && (
@@ -483,6 +494,7 @@ export const OrderEntryPage = () => {
             <TableRow>
               <TableHeader>Part Number</TableHeader>
               <TableHeader>Description</TableHeader>
+              <TableHeader>Box Quantity</TableHeader>
               <TableHeader>Qty</TableHeader>
               <TableHeader>Price</TableHeader>
               <TableHeader>Cost</TableHeader>
@@ -503,15 +515,17 @@ export const OrderEntryPage = () => {
                     placeholder="Search products"
                     value={l.partNumber}
                     onInput={(v: string) => {
-                      updateLine(l.key, { partNumber: v });
+                      updateLine(l.key, { partNumber: v, boxQty: '' });
                       setActiveLine(l.key);
                     }}
-                    onChange={(v: string) => updateLine(l.key, { partNumber: v })}
+                    onChange={(v: string) => updateLine(l.key, { partNumber: v, boxQty: '' })}
                   />
                 </TableCell>
                 <TableCell>
                   <Input name={`desc-${l.key}`} label="" value={l.description} onChange={(v: string) => updateLine(l.key, { description: v })} />
                 </TableCell>
+                {/* Box Quantity: read-only, from the product's sp_alternate_uom */}
+                <TableCell>{l.boxQty}</TableCell>
                 <TableCell>
                   <NumberInput name={`qty-${l.key}`} label="" min={0} value={l.qty} onChange={(v: number) => updateLine(l.key, { qty: v })} />
                 </TableCell>
